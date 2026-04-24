@@ -61,6 +61,10 @@ Your identification and payment addresses must be declared before deployment.
 ## PRIVACY STATEMENT (OFFICIAL RECORD)
 BotToll is **local-only**. We do not export your telemetry to foreign powers. Fingerprints are stored in volatile memory and vanish upon system restart. No cookies. No tracking. Only the record of your entry.
 
+## CLASSIFIED BRIEFING
+
+Full operational dossier: [**Bot Toll — Ghost In The Prompt**](https://ghostintheprompt.com/articles/bot-toll)
+
 ---
 Built by [MDRN Corp](https://ghostintheprompt.com) — [mdrn.app](https://mdrn.app)
 
