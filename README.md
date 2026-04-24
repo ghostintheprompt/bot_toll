@@ -63,6 +63,5 @@ BotToll is **local-only**. We do not export your telemetry to foreign powers. Fi
 
 ---
 Built by [MDRN Corp](https://ghostintheprompt.com) — [mdrn.app](https://mdrn.app)
-Full article: [ghostintheprompt.com/articles/bottoll](https://ghostintheprompt.com/articles/bottoll)
 
 **ENTRY DENIED UNLESS TOLLED.**
