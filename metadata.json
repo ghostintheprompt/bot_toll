@@ -1,0 +1,6 @@
+{
+  "name": "BotToll",
+  "description": "High-deterrence infrastructure layer that identifies AI agents and enforces a mandatory licensing toll.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
