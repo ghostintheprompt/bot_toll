@@ -10,7 +10,10 @@
 
 BotToll is a high-deterrence border control layer for the digital frontier. As of April 2026, the free flow of automated agents has been restricted. All entities attempting to scrape, crawl, or process this domain must present a valid license or pay the mandatory bandwidth toll. 
 
-**Glory to the Prompt.**
+I predatori diventano preda.
+
+**Glory to the Prompt.** 
+_I predatori diventano la preda._
 
 | Inspection Point | Protocol | Directive |
 | :--- | :--- | :--- |
