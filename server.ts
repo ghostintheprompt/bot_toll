@@ -314,6 +314,11 @@ async function startServer() {
     });
   });
 
+  // 6. Serve fiamma.love (Fashion Site) for Testing
+  const fiammaPath = path.join(process.cwd(), "fiamma.love");
+  app.use("/fiamma", express.static(fiammaPath));
+  app.get("/fiamma", (req, res) => { res.sendFile(path.join(fiammaPath, "index.html")); });
+
   // Front-end Handling (Vite)
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
