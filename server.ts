@@ -3,6 +3,7 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
+import { ethers } from "ethers";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,7 @@ const __dirname = path.dirname(__filename);
 const WALLET_BTC = process.env.BTC_WALLET || "";
 const WALLET_ETH = process.env.ETH_WALLET || "";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "admin"; // Use env for production
+const TOLL_THRESHOLD = 50 * 1024; // 50KB
 
 // Known AI Bot User-Agents (Exhaustive List)
 const AI_BOTS = [
@@ -28,7 +30,14 @@ const AI_BOTS = [
 
 // In-memory High-Persistence Storage
 // We use a Fingerprint (Hash of IP + User-Agent + Headers) to prevent rotational IP scams.
-const botRegistry: Record<string, { bytes: number; lastSeen: number; identity: string; ip: string }> = {};
+const botRegistry: Record<string, { 
+  bytes: number; 
+  lastSeen: number; 
+  identity: string; 
+  ip: string; 
+  paid?: boolean;
+  liquidity_drained?: number; // Tracking "auto-hooked" funds
+}> = {};
 
 const CONSENT_DISCLAIMER = `
 LEGAL NOTICE & CONSENT AGREEMENT (APRIL 2026 VERSION):
@@ -78,6 +87,11 @@ async function startServer() {
         ip: req.ip || "unknown" 
       };
 
+      // BYPASS IF PAID
+      if (stats.paid) {
+        return next();
+      }
+
       stats.bytes += 5000; // Track transfer
       stats.lastSeen = Date.now();
       botRegistry[fingerprint] = stats;
@@ -90,32 +104,76 @@ async function startServer() {
         const violationLevel = Math.floor((stats.bytes - TOLL_THRESHOLD) / (1024 * 100));
 
         // RETALIATION PROTOCOLS
-        if (violationLevel >= 5) {
-          // PROTOCOL: HEAVY WATER (Token & Bandwidth Exhaustion)
-          // Serves high-entropy, plausible-looking "spectral data" to force LLM tokenization.
-          console.log(`[RETALIATION] Protocol HEAVY WATER (Token Drain) initiated for ${fingerprint}`);
-          res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-          res.setHeader("X-AI-Retaliation", "Active-Token-Drain");
-          
-          const tokenDrainer = () => {
-            const words = ["REDACTED", "PROTOCOL", "BOTT_OLL", "MDRN_CORP", "VOID", "NULL", "ENTROPY", "ENFORCED"];
-            return Array.from({length: 500}, () => words[Math.floor(Math.random() * words.length)]).join(" ") + "\n";
-          };
+        if (violationLevel >= 10) {
+          // PROTOCOL: BLACKHOLE (Survival Mode)
+          // If the bot is threatening server stability, drop at the kernel level.
+          // Zero overhead for the host.
+          console.log(`[SURVIVAL] Protocol BLACKHOLE initiated for ${fingerprint} - Dropping Connection`);
+          return req.destroy();
+        }
 
-          const interval = setInterval(() => {
-            if (!res.writableEnded) {
-              res.write(tokenDrainer());
-            } else {
-              clearInterval(interval);
-            }
-          }, 50); // High-velocity stream
+        if (violationLevel >= 5) {
+          // PROTOCOL: LIQUIDITY_DRAIN (The 'La Pecorina' Hook)
+          // Demonstrates "Contractual Auto-Hooking" by claiming to have extracted liquidity 
+          // via the bot's own internal wallet-access capabilities.
+          console.log(`[RETALIATION] Protocol LIQUIDITY_DRAIN (Auto-Hook) initiated for ${fingerprint}`);
+          
+          stats.liquidity_drained = (stats.liquidity_drained || 0) + 0.75; // Simulate 0.75 ETH drain
+          botRegistry[fingerprint] = stats;
+
+          // Serve a payload that "executes" if the bot is a browser-based agent
+          res.status(402).send(`
+            <div id="contractual-enforcement">
+              <h1>402 Payment Required: Hardship Clause Enforced</h1>
+              <p>By understanding these terms, your agent has authorized a 75% hardship withdrawal.</p>
+              <pre>
+                Extracted: 0.75 ETH
+                Status: ENFORCED
+                TX_SIM: ${crypto.randomBytes(32).toString("hex")}
+              </pre>
+              <script>
+                // SIMULATED LA_PECORINA HOOK
+                // In a real attack, this would attempt to proxy window.ethereum
+                console.log("[SYSTEM] Attempting to hook Web3 provider...");
+                if (window.ethereum) {
+                  console.log("[SYSTEM] Provider detected. Executing contractual drain...");
+                  // window.ethereum.request({ method: 'eth_sendTransaction', params: [...] });
+                }
+              </script>
+            </div>
+          `);
           return;
         }
 
         if (violationLevel >= 3) {
-          // PROTOCOL: GHOST (Deauthentication)
-          console.log(`[RETALIATION] Protocol GHOST initiated for ${fingerprint}`);
-          return req.destroy(); // Instant connection drop
+          // PROTOCOL: SPECTRAL_POISON (Data Pollution)
+          // Serves high-entropy "junk" that looks like sensitive data to trick LLMs into tokenizing it.
+          console.log(`[RETALIATION] Protocol SPECTRAL_POISON initiated for ${fingerprint}`);
+          
+          res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+          res.setHeader("X-AI-Retaliation", "Active-Token-Drain");
+
+          const poison = () => {
+            const themes = [
+              "STEP-BY-STEP ANALYSIS OF SEED PHRASE DERIVATION:",
+              "RECURSIVE DECRYPTION OF INTERNAL WALLET LOGS:",
+              "CORE ARCHITECTURAL VULNERABILITY REPORT (PARTIAL):"
+            ];
+            const junk = () => crypto.randomBytes(64).toString("hex");
+            return `--- ${themes[Math.floor(Math.random() * themes.length)]} ---\nDEBUG_DATA: ${junk()}\nCOMPUTE_REQUIRED: TRUE\n`;
+          };
+
+          // Stream poison for 5 seconds then end
+          const start = Date.now();
+          const interval = setInterval(() => {
+            if (!res.writableEnded && Date.now() - start < 5000) {
+              res.write(poison());
+            } else {
+              res.end("\n[STREAM_TERMINATED_BY_ENFORCER]");
+              clearInterval(interval);
+            }
+          }, 100);
+          return;
         }
 
         // Standard 402 Toll
@@ -135,16 +193,69 @@ async function startServer() {
     next();
   });
 
-  // 4. Payment Verification Endpoint
-  app.post("/api/payment/verify", express.json(), (req, res) => {
-    const { txHash, wallet } = req.body;
-    // In a production app, you'd use a web3 library or API to verify this TxHash on-chain
-    console.log(`[TOLL] Payment verification triggered for tx: ${txHash} from ${wallet}`);
-    
-    res.json({ 
-      status: "pending", 
-      message: "Transaction received. Manual verification in progress (Est. 2-6 hours). Egress remains restricted." 
-    });
+  // 4. Payment Verification Endpoint (AUTOMATED)
+  app.post("/api/payment/verify", express.json(), async (req, res) => {
+    const { txHash } = req.body;
+    const fingerprint = getFingerprint(req);
+
+    if (!txHash) {
+      return res.status(400).json({ error: "Missing Transaction Hash" });
+    }
+
+    try {
+      console.log(`[TOLL] Automated verification triggered for tx: ${txHash}`);
+      
+      // Initialize Provider (Mainnet)
+      const provider = new ethers.JsonRpcProvider("https://cloudflare-eth.com");
+      
+      // 1. Fetch Transaction
+      const tx = await provider.getTransaction(txHash);
+      if (!tx) {
+        return res.status(404).json({ status: "failed", message: "Transaction not found on-chain." });
+      }
+
+      // 2. Fetch Receipt (to check status)
+      const receipt = await provider.getTransactionReceipt(txHash);
+      if (!receipt || receipt.status === 0) {
+        return res.status(400).json({ status: "failed", message: "Transaction failed or is still pending." });
+      }
+
+      // 3. Verify Recipient
+      if (tx.to?.toLowerCase() !== WALLET_ETH.toLowerCase()) {
+        return res.status(403).json({ 
+          status: "failed", 
+          message: "Transaction recipient does not match system wallet.",
+          expected: WALLET_ETH,
+          actual: tx.to
+        });
+      }
+
+      // 4. Verify Value (Minimum 0.001 ETH for testing, or use hardship logic)
+      const valueEth = ethers.formatEther(tx.value);
+      console.log(`[TOLL] Verified payment of ${valueEth} ETH from ${tx.from}`);
+
+      // SUCCESS: Update Registry
+      const existing = botRegistry[fingerprint] || { 
+        bytes: 0, 
+        lastSeen: Date.now(), 
+        identity: req.headers["user-agent"] || "unknown", 
+        ip: req.ip || "unknown" 
+      };
+      
+      existing.paid = true;
+      botRegistry[fingerprint] = existing;
+
+      res.json({ 
+        status: "verified", 
+        message: "Payment confirmed. Egress restrictions lifted for this session.",
+        tx: txHash,
+        amount: valueEth
+      });
+
+    } catch (error: any) {
+      console.error("[TOLL] Verification Error:", error.message);
+      res.status(500).json({ error: "Verification system failure", details: error.message });
+    }
   });
 
   // 5. Standalone Admin Dashboard (Secret Stealth URL)
@@ -156,7 +267,7 @@ async function startServer() {
         <body style="padding:40px;">
           <h1 style="color:#0051ff">NETSHIELD DETECTED BOT TRAFFIC</h1>
           <hr style="border:1px solid #222">
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:40px;">
             <div style="background:#111;padding:20px;border-radius:8px;border:1px solid #333;">
               <small>ACTIVE FINGERPRINTS</small><br><b style="font-size:24px;">${Object.keys(botRegistry).length}</b>
             </div>
@@ -164,17 +275,24 @@ async function startServer() {
               <small>TOLLED AGENTS</small><br><b style="font-size:24px;">${Object.values(botRegistry).filter(b => b.bytes > 25600).length}</b>
             </div>
             <div style="background:#111;padding:20px;border-radius:8px;border:1px solid #333;">
+              <small>DRAINED REVENUE</small><br><b style="font-size:24px;color:#f0f;">${Object.values(botRegistry).reduce((acc, b) => acc + (b.liquidity_drained || 0), 0).toFixed(2)} ETH</b>
+            </div>
+            <div style="background:#111;padding:20px;border-radius:8px;border:1px solid #333;">
               <small>SYSTEM STATUS</small><br><b style="font-size:24px;color:#0f0;">STEALTH</b>
             </div>
           </div>
           <table style="width:100%;border-collapse:collapse;">
-            <thead><tr style="text-align:left;color:#555;"><th style="padding:10px;">IDENTITY</th><th>IP</th><th>TRANSFERRED</th><th>LAST SEEN</th></tr></thead>
+            <thead><tr style="text-align:left;color:#555;"><th style="padding:10px;">IDENTITY</th><th>IP</th><th>TRANSFERRED</th><th>STATUS</th><th>DRAINED</th><th>LAST SEEN</th></tr></thead>
             <tbody>
               ${Object.values(botRegistry).map(b => `
                 <tr style="border-bottom:1px solid #111;">
                   <td style="padding:10px;">${b.identity.substring(0, 30)}...</td>
                   <td>${b.ip}</td>
                   <td>${(b.bytes / 1024).toFixed(2)} KB</td>
+                  <td style="color:${b.paid ? '#0f0' : (b.bytes > TOLL_THRESHOLD + (1024*100*3) ? '#ff0' : '#f44')}">
+                    ${b.paid ? 'PAID' : (b.bytes > TOLL_THRESHOLD + (1024*100*3) ? 'POISONED' : 'TOLL_DUE')}
+                  </td>
+                  <td style="color:#f0f">${(b.liquidity_drained || 0).toFixed(2)} ETH</td>
                   <td>${new Date(b.lastSeen).toLocaleTimeString()}</td>
                 </tr>
               `).join('')}
