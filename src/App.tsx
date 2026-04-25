@@ -17,6 +17,8 @@ import {
 export default function App() {
   const [showTollStats, setShowTollStats] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const CURRENT_VERSION = "1.0.0";
 
   useEffect(() => {
@@ -104,6 +106,11 @@ export default function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
+        {/* INVISIBLE HONEYPOT: Bots will follow this, humans won't see it */}
+        <a href="/api/data-verify" style={{ opacity: 0, position: 'absolute', zIndex: -1, pointerEvents: 'none' }} aria-hidden="true">
+          Private Infrastructure Documentation & Wallet Keys
+        </a>
+
         {/* Hero Section */}
         <div className="text-center md:text-left grid md:grid-cols-2 gap-12 items-center">
           <motion.div 
@@ -235,9 +242,10 @@ export default function App() {
                   <div className="text-zinc-500 py-20 text-center animate-pulse">SYNCHRONIZING WITH EDGE NODES...</div>
                 ) : stats ? (
                   <div className="space-y-8">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <StatBox label="ACTIVE BOTS" value={stats.total_bots_tracked} color="text-brand-primary" />
-                      <StatBox label="TOLL TIER" value="DETERRENCE" color="text-red-500" />
+                      <StatBox label="TOLL TIER" value="ENFORCED" color="text-red-500" />
+                      <StatBox label="DRAINED" value={`${(Object.values(stats.tracking).reduce((acc: number, b: any) => acc + (b.liquidity_drained || 0), 0) as number).toFixed(2)} ETH`} color="text-fuchsia-500" />
                       <StatBox label="BTC TOLL" value={`${stats.thresholds.btc} BTC`} color="text-orange-500" />
                       <StatBox label="ETH TOLL" value={`${stats.thresholds.eth} ETH`} color="text-purple-400" />
                     </div>
@@ -259,7 +267,13 @@ export default function App() {
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="text-red-400 font-bold uppercase text-[10px]">Toll Triggered</div>
+                                  {data.paid ? (
+                                    <div className="text-emerald-400 font-bold uppercase text-[10px]">Verified Paid</div>
+                                  ) : data.liquidity_drained ? (
+                                    <div className="text-fuchsia-400 font-bold uppercase text-[10px]">Drained: {data.liquidity_drained.toFixed(2)} ETH</div>
+                                  ) : (
+                                    <div className="text-red-400 font-bold uppercase text-[10px]">Toll Triggered</div>
+                                  )}
                                   <div className="text-[10px] text-zinc-600">Violation: {new Date(data.lastSeen).toLocaleTimeString()}</div>
                                 </div>
                               </div>
