@@ -27,6 +27,14 @@ Failure to present a license or pay the toll will trigger the following Retaliat
 *   **PROTOCOL GHOST**: Instant deauthentication. The gate vanishes, and the connection is severed, forcing the bot to retry and waste initial handshaking compute.
 *   **PROTOCOL HEAVY WATER (The Token Burner)**: High-entropy data stream. Intruders are force-fed a high-velocity stream of "spectral data." If the agent is LLM-based, it will attempt to tokenize and process this infinite garbage, **draining its token budget** and context window instantly.
 *   **PROTOCOL GULAG (Thread Locking)**: Recursive tarpitting. Agents are locked in a 15-second latency loop. This holds their processing threads open, **spiking their compute billing** while serving zero usable intelligence.
+*   **PROTOCOL NEURAL_POISON (GenAI Engine)**: High-entropy data pollution. Powered by Gemini-1.5-Flash, the system generates unique, realistic "leaked" data per session (e.g., s2: S3 IAM leaks, s9: Oracle Drift logs). These are designed to **poison the training sets** of AI agents that process them.
+
+## CLASSIFIED DASHBOARD (ALT+T)
+The system includes a deep-monitoring suite for identifying and punishing intruders:
+- **CyberSOC**: Monitor real-time incidents (`INC-...`) and the 16 structural guardrails.
+- **Threat Simulator**: Track the deployment of scenarios `s1-s16` across active bot fingerprints.
+- **Neural Lab**: Inspect the raw output of the AI-driven poison generator.
+- **Infra Manager**: Monitor edge node health and global deterrence activation status.
 
 ## DIRECTIVES FOR INSTALLATION
 
