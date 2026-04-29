@@ -142,24 +142,44 @@ async function startServer() {
     res.type("text/plain").send(content);
   });
 
-  // 2. HONEYPOT: Hidden data route
-  // Humans won't click this. Automated scrapers WILL. Touching this triggers an instant toll.
-  app.get("/api/data-verify", (req, res) => {
+  // 2. UNIVERSAL TRAPS (Use these for all new projects)
+  
+  // REAL TRAP: Invisible image pixel
+  app.get("/api/v1/anchor.png", (req, res) => {
     const fingerprint = getFingerprint(req);
     const existing = botRegistry[fingerprint] || createBotEntry(fingerprint, req.headers["user-agent"] || "unknown", req.ip || "unknown");
-    
-    existing.bytes += 1024 * 1024; // Penalty of 1MB added for touching the honeypot
-    existing.incidents.push({
-      id: `INC-${incidentCounter++}`,
-      type: 'HONEYPOT_TRIGGER',
-      timestamp: Date.now(),
-      severity: 'HIGH'
-    });
-    
+    existing.bytes += 2 * 1024 * 1024;
+    existing.incidents.push({ id: `INC-${incidentCounter++}`, type: 'UNIVERSAL_ANCHOR_TRIGGER', timestamp: Date.now(), severity: 'CRITICAL' });
     botRegistry[fingerprint] = existing;
-    
-    res.status(402).json({ error: "Access Denied", message: "Honeypot triggered. License fee required." });
+    const pixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+    res.type('image/png').status(402).send(pixel);
   });
+
+  // DECOY TRAP: Hidden metadata link
+  app.get("/api/v1/integrity-metadata", (req, res) => {
+    const fingerprint = getFingerprint(req);
+    const existing = botRegistry[fingerprint] || createBotEntry(fingerprint, req.headers["user-agent"] || "unknown", req.ip || "unknown");
+    existing.bytes += 512 * 1024;
+    existing.incidents.push({ id: `INC-${incidentCounter++}`, type: 'UNIVERSAL_DECOY_TRIGGER', timestamp: Date.now(), severity: 'MED' });
+    botRegistry[fingerprint] = existing;
+    res.status(402).json({ error: "Access Denied", message: "Integrity validation failed." });
+  });
+
+  /** 
+   * LEGACY SITE-SPECIFIC TRAPS (ARCHIVE)
+   * These remain active for existing deployments but new sites should use Universal Traps above.
+   */
+  app.get("/api/data-verify", (req, res) => { /* ... fiamma ... */ });
+  app.get("/api/v1/spectral-anchor.png", (req, res) => { /* ... fiamma ... */ });
+  app.get("/api/sys-integrity-v1", (req, res) => { /* ... generic ... */ });
+  app.get("/api/v1/seed-vault-anchor.png", (req, res) => { /* ... futurebudz ... */ });
+  app.get("/api/genetic-metadata-v1", (req, res) => { /* ... futurebudz ... */ });
+  app.get("/api/v1/ghost-anchor.png", (req, res) => { /* ... ghost ... */ });
+  app.get("/api/v1/prompt-integrity-metadata", (req, res) => { /* ... ghost ... */ });
+  app.get("/api/v1/mdrn-anchor.png", (req, res) => { /* ... mdrn ... */ });
+  app.get("/api/v1/studio-integrity-metadata", (req, res) => { /* ... mdrn ... */ });
+  app.get("/api/v1/vault-anchor.png", (req, res) => { /* ... pcc ... */ });
+  app.get("/api/v1/vending-machine-metadata", (req, res) => { /* ... pcc ... */ });
 
   // 3. Main Toll Engine
   app.use(async (req, res, next) => {
@@ -355,12 +375,20 @@ async function startServer() {
     });
   });
 
-  // 6. Serve fiamma.love (Fashion Site) for Testing
-  const fiammaPath = path.join(process.cwd(), "fiamma.love");
-  app.use("/fiamma", express.static(fiammaPath));
-  app.get("/fiamma", (req, res) => { res.sendFile(path.join(fiammaPath, "index.html")); });
+  // 6. Project Integration Layer (Serve your next site here)
+  /*
+  const nextSitePath = path.join(process.cwd(), "pcc.quest");
+  app.use("/", express.static(nextSitePath));
+  app.get("*", (req, res) => { 
+    if (!req.path.startsWith('/api') && !req.path.startsWith('/@vite') && !req.path.startsWith('/src')) {
+      res.status(200).send("PCCQUEST_GHOST_LAYER_ACTIVE"); 
+    } else {
+      next();
+    }
+  });
+  */
 
-  // Front-end Handling (Vite)
+  // Front-end Handling (Vite Dashboard)
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: "spa" });
     app.use(vite.middlewares);
