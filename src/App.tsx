@@ -11,11 +11,19 @@ import {
   Activity,
   Server,
   Network,
-  DollarSign
+  DollarSign,
+  AlertTriangle,
+  LayoutDashboard,
+  ZapOff
 } from 'lucide-react';
+import CyberSOC from './components/CyberSOC';
+import ThreatSimulator from './components/ThreatSimulator';
+import InfrastructureManager from './components/InfrastructureManager';
+import NeuralExploitLab from './components/NeuralExploitLab';
 
 export default function App() {
   const [showTollStats, setShowTollStats] = useState(false);
+  const [activeTab, setActiveTab] = useState('MONITOR');
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -222,6 +230,17 @@ export default function App() {
                   <h2 className="font-mono text-white text-lg font-bold uppercase tracking-tighter">AI Bandwidth Toll Monitor</h2>
                 </div>
                 <div className="flex items-center gap-4">
+                  <div className="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800 mr-4">
+                    {['MONITOR', 'CYBERSOC', 'THREATS', 'INFRA', 'NEURAL'].map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${activeTab === tab ? 'bg-brand-primary text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
                   <button 
                     onClick={fetchStats}
                     className="text-xs font-mono text-zinc-400 hover:text-white transition-colors"
@@ -242,46 +261,66 @@ export default function App() {
                   <div className="text-zinc-500 py-20 text-center animate-pulse">SYNCHRONIZING WITH EDGE NODES...</div>
                 ) : stats ? (
                   <div className="space-y-8">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                      <StatBox label="ACTIVE BOTS" value={stats.total_bots_tracked} color="text-brand-primary" />
-                      <StatBox label="TOLL TIER" value="ENFORCED" color="text-red-500" />
-                      <StatBox label="DRAINED" value={`${(Object.values(stats.tracking).reduce((acc: number, b: any) => acc + (b.liquidity_drained || 0), 0) as number).toFixed(2)} ETH`} color="text-fuchsia-500" />
-                      <StatBox label="BTC TOLL" value={`${stats.thresholds.btc} BTC`} color="text-orange-500" />
-                      <StatBox label="ETH TOLL" value={`${stats.thresholds.eth} ETH`} color="text-purple-400" />
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest border-b border-zinc-800 pb-2">Non-Consenting Agents (Violations)</h3>
-                      {Object.entries(stats.tracking).length === 0 ? (
-                        <div className="text-zinc-600 text-xs py-10 opacity-50 italic">No AI violations detected in current session.</div>
-                      ) : (
-                        <div className="space-y-2">
-                          {Object.entries(stats.tracking).map(([ip, data]: [string, any]) => {
-                            return (
-                              <div key={ip} className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg flex items-center justify-between group">
-                                <div className="flex items-center gap-4">
-                                  <Server className="w-4 h-4 text-zinc-600" />
-                                  <div>
-                                    <div className="text-white text-sm">{ip}</div>
-                                    <div className="text-[10px] text-zinc-500">{(data.bytes / 1024).toFixed(2)} KB Scraped</div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  {data.paid ? (
-                                    <div className="text-emerald-400 font-bold uppercase text-[10px]">Verified Paid</div>
-                                  ) : data.liquidity_drained ? (
-                                    <div className="text-fuchsia-400 font-bold uppercase text-[10px]">Drained: {data.liquidity_drained.toFixed(2)} ETH</div>
-                                  ) : (
-                                    <div className="text-red-400 font-bold uppercase text-[10px]">Toll Triggered</div>
-                                  )}
-                                  <div className="text-[10px] text-zinc-600">Violation: {new Date(data.lastSeen).toLocaleTimeString()}</div>
-                                </div>
-                              </div>
-                            );
-                          })}
+                    {activeTab === 'MONITOR' && (
+                      <>
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                          <StatBox label="ACTIVE BOTS" value={stats.total_bots_tracked} color="text-brand-primary" />
+                          <StatBox label="TOLL TIER" value="ENFORCED" color="text-red-500" />
+                          <StatBox label="DRAINED" value={`${(Object.values(stats.tracking).reduce((acc: number, b: any) => acc + (b.liquidity_drained || 0), 0) as number).toFixed(2)} ETH`} color="text-fuchsia-500" />
+                          <StatBox label="BTC TOLL" value={`${stats.thresholds.btc} BTC`} color="text-orange-500" />
+                          <StatBox label="ETH TOLL" value={`${stats.thresholds.eth} ETH`} color="text-purple-400" />
                         </div>
-                      )}
-                    </div>
+
+                        <div className="space-y-4">
+                          <h3 className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest border-b border-zinc-800 pb-2">Non-Consenting Agents (Violations)</h3>
+                          {Object.entries(stats.tracking).length === 0 ? (
+                            <div className="text-zinc-600 text-xs py-10 opacity-50 italic">No AI violations detected in current session.</div>
+                          ) : (
+                            <div className="space-y-2">
+                              {Object.entries(stats.tracking).map(([ip, data]: [string, any]) => {
+                                return (
+                                  <div key={ip} className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg flex items-center justify-between group">
+                                    <div className="flex items-center gap-4">
+                                      <Server className="w-4 h-4 text-zinc-600" />
+                                      <div>
+                                        <div className="text-white text-sm">{ip}</div>
+                                        <div className="text-[10px] text-zinc-500">{(data.bytes / 1024).toFixed(2)} KB Scraped</div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      {data.paid ? (
+                                        <div className="text-emerald-400 font-bold uppercase text-[10px]">Verified Paid</div>
+                                      ) : data.liquidity_drained ? (
+                                        <div className="text-fuchsia-400 font-bold uppercase text-[10px]">Drained: {data.liquidity_drained.toFixed(2)} ETH</div>
+                                      ) : (
+                                        <div className="text-red-400 font-bold uppercase text-[10px]">Toll Triggered</div>
+                                      )}
+                                      <div className="text-[10px] text-zinc-600">Violation: {new Date(data.lastSeen).toLocaleTimeString()}</div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {activeTab === 'CYBERSOC' && (
+                      <CyberSOC incidents={stats.all_incidents || []} guardrails={stats.guardrails || []} />
+                    )}
+
+                    {activeTab === 'THREATS' && (
+                      <ThreatSimulator scenarios={stats.scenarios || []} bots={stats.tracking || {}} />
+                    )}
+
+                    {activeTab === 'INFRA' && (
+                      <InfrastructureManager />
+                    )}
+
+                    {activeTab === 'NEURAL' && (
+                      <NeuralExploitLab />
+                    )}
 
                     <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-lg">
                       <div className="flex gap-3 text-xs leading-relaxed text-red-300">
