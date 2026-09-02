@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Platform: Web](https://img.shields.io/badge/Platform-Web-orange.svg)]()
-[![Release: v1.0.0](https://img.shields.io/badge/Release-v1.0.0-green.svg)](https://github.com/ghostintheprompt/bot-toll/releases)
+[![Release: v1.0.0](https://img.shields.io/badge/Release-v1.0.0-green.svg)](https://github.com/ghostintheprompt/bot_toll/releases)
 
 BotToll is a high-deterrence border control layer for the digital frontier. As of April 2026, the free flow of automated agents has been restricted. All entities attempting to scrape, crawl, or process this domain must present a valid license or pay the mandatory bandwidth toll. 
 
@@ -41,8 +41,8 @@ The system includes a deep-monitoring suite for identifying and punishing intrud
 
 ### 1. Secure the Perimeter
 ```bash
-git clone https://github.com/ghostintheprompt/bot-toll.git
-cd bot-toll
+git clone https://github.com/ghostintheprompt/bot_toll.git
+cd bot_toll
 npm install
 npm run build
 ```
