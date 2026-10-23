@@ -263,10 +263,9 @@ export default function App() {
                   <div className="space-y-8">
                     {activeTab === 'MONITOR' && (
                       <>
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                           <StatBox label="ACTIVE BOTS" value={stats.total_bots_tracked} color="text-brand-primary" />
                           <StatBox label="TOLL TIER" value="ENFORCED" color="text-red-500" />
-                          <StatBox label="DRAINED" value={`${(Object.values(stats.tracking).reduce((acc: number, b: any) => acc + (b.liquidity_drained || 0), 0) as number).toFixed(2)} ETH`} color="text-fuchsia-500" />
                           <StatBox label="BTC TOLL" value={`${stats.thresholds.btc} BTC`} color="text-orange-500" />
                           <StatBox label="ETH TOLL" value={`${stats.thresholds.eth} ETH`} color="text-purple-400" />
                         </div>
@@ -290,8 +289,6 @@ export default function App() {
                                     <div className="text-right">
                                       {data.paid ? (
                                         <div className="text-emerald-400 font-bold uppercase text-[10px]">Verified Paid</div>
-                                      ) : data.liquidity_drained ? (
-                                        <div className="text-fuchsia-400 font-bold uppercase text-[10px]">Drained: {data.liquidity_drained.toFixed(2)} ETH</div>
                                       ) : (
                                         <div className="text-red-400 font-bold uppercase text-[10px]">Toll Triggered</div>
                                       )}

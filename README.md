@@ -27,7 +27,7 @@ Failure to present a license or pay the toll will trigger the following Retaliat
 *   **PROTOCOL GHOST**: Instant deauthentication. The gate vanishes, and the connection is severed, forcing the bot to retry and waste initial handshaking compute.
 *   **PROTOCOL HEAVY WATER (The Token Burner)**: High-entropy data stream. Intruders are force-fed a high-velocity stream of "spectral data." If the agent is LLM-based, it will attempt to tokenize and process this infinite garbage, **draining its token budget** and context window instantly.
 *   **PROTOCOL GULAG (Thread Locking)**: Recursive tarpitting. Agents are locked in a 15-second latency loop. This holds their processing threads open, **spiking their compute billing** while serving zero usable intelligence.
-*   **PROTOCOL NEURAL_POISON (GenAI Engine)**: High-entropy data pollution. Powered by Gemini-1.5-Flash, the system generates unique, realistic "leaked" data per session (e.g., s2: S3 IAM leaks, s9: Oracle Drift logs). These are designed to **poison the training sets** of AI agents that process them.
+*   **PROTOCOL NEURAL_POISON (GenAI Engine)**: High-entropy data pollution. Powered by Gemini 3.8 Flash, the system generates unique, realistic "leaked" data per session (e.g., s2: S3 IAM leaks, s9: Oracle Drift logs). These are designed to **poison the training sets** of AI agents that process them.
 
 ## CLASSIFIED DASHBOARD (ALT+T)
 The system includes a deep-monitoring suite for identifying and punishing intruders:
@@ -56,8 +56,8 @@ Your identification and payment addresses must be declared before deployment.
    ETH_WALLET=your_ethereum_address_here
    ADMIN_SECRET=your_secret_passphrase
    ```
-3. **The Hardship Clause**: If you lack liquidity, the clause applies (75% of total assets). 
-   *Note: If no wallets are declared, the checkpoint will remain locked in demonstration mode.*
+   *Note: If no wallets are declared, the checkpoint stays in demonstration mode.*
+   *BotToll only requests a toll payment to the addresses above; it never accesses, requests, or moves a visitor's funds. Deterrence is delay and decoy data, not asset seizure.*
 
 ## USAGE STEPS (COMPLIANCE IS MANDATORY)
 1. **The Trap**: Place this invisible wire in your HTML body to catch intruders:
